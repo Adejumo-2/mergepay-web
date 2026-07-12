@@ -11,6 +11,10 @@ and small communities.
 [Web repo](https://github.com/mergepay/mergepay-web) ·
 [API repo](https://github.com/mergepay/mergepay-api)
 
+![CI](https://github.com/mergepay/mergepay-web/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/github/license/mergepay/mergepay-web)
+![Vercel](https://img.shields.io/badge/deployed-vercel-black)
+
 </div>
 
 ---
@@ -152,3 +156,13 @@ and PRs welcome.
 ## License
 
 [MIT](LICENSE) © 2026 Mergepay contributors.
+
+## Maintainers
+
+| Maintainer | Role | GitHub | Telegram |
+|---|---|---|---|
+| Fuhad (K1NGD4VID) | Maintainer | [@K1NGD4VID](https://github.com/K1NGD4VID) | [FUHAD: add your Telegram handle] |
+
+## Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=mergepay/mergepay-web)](https://github.com/mergepay/mergepay-web/graphs/contributors)
