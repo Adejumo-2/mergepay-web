@@ -28,10 +28,6 @@ logic and Stellar submission live in [`mergepay-api`](https://github.com/mergepa
 > Stellar payments (with a `MP:<code>` memo per expense), balances clear in XLM or
 > USDC over trustlines, and fiat on/off-ramp uses SEP-24 anchors. Keys never leave the
 > user's wallet.
->
-> **🌊 Drips Wave (Stellar ecosystem).** The active bounty-ready issue queue is
-> backend-only and lives in the API repo — see
-> [mergepay-api → DRIPS_WAVE.md](https://github.com/mergepay/mergepay-api/blob/main/DRIPS_WAVE.md).
 
 ## Why Stellar
 
@@ -51,16 +47,16 @@ public Stellar ledger.
 
 ## Screens
 
-| Route | What it does |
-| --- | --- |
-| `/` | Marketing landing page with animated Lottie illustrations |
-| `/login` | SEP-10 wallet sign-in (Freighter) |
-| `/dashboard` | Balances summary + your groups |
+| Route                      | What it does                                                               |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `/`                        | Marketing landing page with animated Lottie illustrations                  |
+| `/login`                   | SEP-10 wallet sign-in (Freighter)                                          |
+| `/dashboard`               | Balances summary + your groups                                             |
 | `/groups` · `/groups/[id]` | Group list and detail (Expenses, Balances, Ledger, Treasury, Members tabs) |
-| `/join/[code]` | Accept an invite link |
-| `/anchors` | SEP-24 deposit / withdrawal flows |
-| `/history` | Cross-group expense & settlement history, CSV / PDF export |
-| `/settings` | Profile + Stellar identity |
+| `/join/[code]`             | Accept an invite link                                                      |
+| `/anchors`                 | SEP-24 deposit / withdrawal flows                                          |
+| `/history`                 | Cross-group expense & settlement history, CSV / PDF export                 |
+| `/settings`                | Profile + Stellar identity                                                 |
 
 ## Prerequisites
 
@@ -80,34 +76,38 @@ npm run dev                  # http://localhost:3000
 
 ## Environment variables
 
-| Variable | Description | Default |
-| --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Base URL of mergepay-api | `http://localhost:4000` |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | `testnet` or `public` | `testnet` |
-| `NEXT_PUBLIC_HORIZON_URL` | Horizon server URL | testnet Horizon |
-| `NEXT_PUBLIC_STABLE_ASSET_CODE` | Stable asset offered for settlement | `USDC` |
-| `NEXT_PUBLIC_STABLE_ASSET_ISSUER` | Issuer of the stable asset | SDF test USDC |
+| Variable                          | Description                         | Default                 |
+| --------------------------------- | ----------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_API_URL`             | Base URL of mergepay-api            | `http://localhost:4000` |
+| `NEXT_PUBLIC_STELLAR_NETWORK`     | `testnet` or `public`               | `testnet`               |
+| `NEXT_PUBLIC_HORIZON_URL`         | Horizon server URL                  | testnet Horizon         |
+| `NEXT_PUBLIC_STABLE_ASSET_CODE`   | Stable asset offered for settlement | `USDC`                  |
+| `NEXT_PUBLIC_STABLE_ASSET_ISSUER` | Issuer of the stable asset          | SDF test USDC           |
 
 ## How the flows work
 
 ### SEP-10 login
+
 1. The app reads your active public key from Freighter.
 2. It asks the API for a SEP-10 **challenge transaction** for that account.
 3. Freighter signs the challenge; the API verifies the signature and issues a JWT.
 4. The JWT is stored client-side and sent as a `Bearer` token on every request.
 
 ### Settlement
+
 1. You pick a share/suggestion to settle.
 2. The API builds an **unsigned payment XDR** (correct asset, amount, destination, and a `MP:<code>` memo linking it to the expense).
 3. Freighter signs it; the API validates the signed XDR matches the intent, submits to Stellar, stores the transaction hash, and marks the share settled.
 4. The ledger updates with a clickable [stellar.expert](https://stellar.expert) link.
 
 ### Treasury mode
+
 A group can register a dedicated Stellar account (created in the wallet — the API never
 holds its key). Deposits are signed by members; withdrawals are signed from the treasury
 account and can require multiple signers (multisig) before submission.
 
 ### Anchor deposits (SEP-24)
+
 The app starts a session, the API fetches a SEP-10 challenge **from the anchor**, the
 wallet signs it, and the API exchanges it for the anchor's interactive deposit/withdraw
 URL, which opens in a new tab.
@@ -159,8 +159,8 @@ and PRs welcome.
 
 ## Maintainers
 
-| Maintainer | Role | GitHub | Telegram |
-|---|---|---|---|
+| Maintainer        | Role       | GitHub                                     | Telegram                          |
+| ----------------- | ---------- | ------------------------------------------ | --------------------------------- |
 | Fuhad (K1NGD4VID) | Maintainer | [@K1NGD4VID](https://github.com/K1NGD4VID) | [FUHAD: add your Telegram handle] |
 
 ## Contributors
