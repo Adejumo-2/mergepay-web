@@ -1,19 +1,21 @@
-# Mergepay — How to Get Selected by Drips (Do This Step by Step)
+# Mergepay — Open-Source Funding Readiness (Do This Step by Step)
 
-This is your **personal checklist**. Everything in the code is already done. Below are
-the only things **you** need to do, in order, with exact click paths. Just follow it
+This is your **personal checklist** for getting the project ready to apply to an
+open-source funding program. Everything in the code is already done. Below are the
+only things **you** need to do, in order, with exact click paths. Just follow it
 top to bottom.
 
 - Your repos (already under the `mergepay` GitHub org):
-  - Backend (apply to Drips with THIS one): https://github.com/mergepay/mergepay-api
+  - Backend (apply with THIS one): https://github.com/mergepay/mergepay-api
   - Frontend: https://github.com/mergepay/mergepay-web
-- Your Drips payout address (already added to the code for you):
+- Your payout address (already added to the code for you):
   `0x39746A9E08B9f7b24b1E1538fBD5e065ee5b2B30`
 
-> **Big picture:** Drips pays open-source maintainers. To get in, you must (1) prove you
-> own the repo with an on-chain file, (2) have a public repo with good docs, and (3)
-> have a few well-written GitHub Issues for contributors to work on. Items 1 and 2 are
-> done. You mainly need to create the **labels** and **issues** (Steps 4 and 5 below).
+> **Big picture:** Funding programs pay open-source maintainers. To get in, you must
+> (1) prove you own the repo with an on-chain file, (2) have a public repo with good
+> docs, and (3) have a few well-written GitHub Issues for contributors to work on.
+> Items 1 and 2 are done. You mainly need to create the **labels** and **issues**
+> (Steps 4 and 5 below).
 
 ---
 
@@ -30,7 +32,7 @@ top to bottom.
 
 ## STEP 1 — Make both repos Public
 
-A repo must be public for Drips. Do this for **both** repos.
+A repo must be public to be claimable. Do this for **both** repos.
 
 1. Open https://github.com/mergepay/mergepay-api
 2. Click **Settings** (top tab, far right).
@@ -42,17 +44,17 @@ A repo must be public for Drips. Do this for **both** repos.
 
 ---
 
-## STEP 2 — Claim your project on Drips
+## STEP 2 — Claim your project on the funding platform
 
-This links your repo to your MetaMask wallet so Drips knows you own it.
+This links your repo to your wallet so the platform knows you own it.
 
-1. Go to **https://app.drips.network**
-2. Top-right: **Connect wallet** → choose **MetaMask** → approve in the MetaMask popup.
+1. Open the funding platform and connect your wallet.
+2. Choose **MetaMask** → approve in the MetaMask popup.
    - Make sure MetaMask is on the **Ethereum Mainnet** network (it is by default).
-3. In the left menu, click **Projects**.
+3. Go to the **Projects** section.
 4. Click **Claim project**.
 5. Paste your repo URL: `https://github.com/mergepay/mergepay-api`
-6. Drips reads your `FUNDING.json`, sees your address `0x3974...2B30`, and confirms it matches your connected wallet. Follow the on-screen prompts to finish.
+6. The platform reads your `FUNDING.json`, sees your address `0x3974...2B30`, and confirms it matches your connected wallet. Follow the on-screen prompts to finish.
 7. (Optional) Repeat for `https://github.com/mergepay/mergepay-web` if you want both claimed.
 
 > If it says the address doesn't match: make sure the MetaMask account you connected is
@@ -60,22 +62,21 @@ This links your repo to your MetaMask wallet so Drips knows you own it.
 
 ---
 
-## STEP 3 — Install the Drips "Wave" GitHub App
+## STEP 3 — Install the platform's GitHub App
 
-This lets Drips read your issues and labels.
+This lets the platform read your issues and labels.
 
-1. Still in the Drips app, look for **Wave** (or go to the Wave section of the app).
-2. In the menu choose **Maintainers → Orgs and Repos**.
-3. Click the prompt to **Install the GitHub App**.
-4. GitHub will ask which account — choose the **mergepay** organization.
-5. When asked for repository access, select **mergepay-api** (and **mergepay-web** if you want), then **Install**. Approve the permissions (issues, labels, pull requests).
+1. In the platform's app, find the **Maintainers → Orgs and Repos** section.
+2. Click the prompt to **Install the GitHub App**.
+3. GitHub will ask which account — choose the **mergepay** organization.
+4. When asked for repository access, select **mergepay-api** (and **mergepay-web** if you want), then **Install**. Approve the permissions (issues, labels, pull requests).
 
 ---
 
 ## STEP 4 — Create the labels (detailed)
 
-Labels are colored tags on issues. Drips uses them to know how hard each task is. You'll
-create **4 labels** in the **mergepay-api** repo.
+Labels are colored tags on issues. The platform uses them to know how hard each task is.
+You'll create **3 labels** in the **mergepay-api** repo.
 
 **How to open the labels page:**
 1. Go to https://github.com/mergepay/mergepay-api
@@ -84,14 +85,13 @@ create **4 labels** in the **mergepay-api** repo.
 4. Click the green **New label** button (top right).
 
 **For each label below:** type the **Name** exactly, click the color box and paste the
-**Color** code, optionally type the description, then click **Create label**. Repeat 4 times.
+**Color** code, optionally type the description, then click **Create label**. Repeat 3 times.
 
 | # | Name (type exactly) | Color | Description |
 |---|---|---|---|
-| 1 | `drips-wave` | `6C4DF6` | Tracked in a Drips Wave program |
-| 2 | `complexity: trivial` | `BFE9F0` | Small, well-bounded task |
-| 3 | `complexity: medium` | `D7F94B` | Moderate scope |
-| 4 | `complexity: high` | `FF8A3C` | Large or cross-cutting task |
+| 1 | `complexity: trivial` | `BFE9F0` | Small, well-bounded task |
+| 2 | `complexity: medium` | `D7F94B` | Moderate scope |
+| 3 | `complexity: high` | `FF8A3C` | Large or cross-cutting task |
 
 > Tip: GitHub already gives you a `good first issue` label by default — you don't need to create that one.
 
@@ -111,9 +111,6 @@ This is the most important step for getting selected. You'll create **6 issues**
 6. Click **Submit new issue**.
 7. Repeat for all 6.
 
-Do that for each of the following. (These are also saved in the repo file
-`mergepay-api/DRIPS_WAVE.md` if you prefer copying from there.)
-
 ---
 
 ### Issue 1 of 6
@@ -121,7 +118,7 @@ Do that for each of the following. (These are also saved in the repo file
 ```
 Publish an OpenAPI 3 spec and serve Swagger UI at /docs
 ```
-**Labels to tick:** `drips-wave`, `complexity: medium`, `good first issue`
+**Labels to tick:** `complexity: medium`, `good first issue`
 
 **Body:**
 ```
@@ -154,7 +151,7 @@ No frontend changes; no auth changes.
 ```
 Add request IDs and structured request logging (with secret redaction)
 ```
-**Labels to tick:** `drips-wave`, `complexity: trivial`, `good first issue`
+**Labels to tick:** `complexity: trivial`, `good first issue`
 
 **Body:**
 ```
@@ -187,7 +184,7 @@ No external log shipping; no frontend changes.
 ```
 Idempotency keys for POST /settlements/:id/confirm
 ```
-**Labels to tick:** `drips-wave`, `complexity: medium`
+**Labels to tick:** `complexity: medium`
 
 **Body:**
 ```
@@ -219,7 +216,7 @@ Idempotency for other endpoints (follow-up); no frontend changes.
 ```
 Cursor pagination and filtering for GET /history and GET /groups/:id/ledger
 ```
-**Labels to tick:** `drips-wave`, `complexity: high`
+**Labels to tick:** `complexity: high`
 
 **Body:**
 ```
@@ -253,7 +250,7 @@ Frontend wiring; offset pagination.
 ```
 Expand SEP-24 anchor service tests and add retry/backoff to anchor HTTP calls
 ```
-**Labels to tick:** `drips-wave`, `complexity: medium`
+**Labels to tick:** `complexity: medium`
 
 **Body:**
 ```
@@ -284,7 +281,7 @@ Real anchor onboarding; frontend changes.
 ```
 Add a REST Client (.http) request collection for local API exploration
 ```
-**Labels to tick:** `drips-wave`, `complexity: trivial`, `good first issue`
+**Labels to tick:** `complexity: trivial`, `good first issue`
 
 **Body:**
 ```
@@ -311,9 +308,9 @@ Frontend changes; automated contract testing.
 
 ---
 
-## STEP 6 — Apply to the Stellar Wave program
+## STEP 6 — Apply to the Stellar funding program
 
-1. Back in the Drips **Wave** app, after your repo is synced (Step 3), find the active **Stellar** Wave program.
+1. Back in the platform's app, after your repo is synced (Step 3), find the active **Stellar** funding program.
 2. Click **Apply** and select your `mergepay-api` repo.
 3. Only apply to the **Stellar** ecosystem — it matches your project.
 
@@ -321,8 +318,8 @@ Frontend changes; automated contract testing.
 
 ## STEP 7 — Complete identity verification (KYC)
 
-At some point Drips will ask you to verify your identity (KYC) before it can pay out
-rewards. Just follow the prompt in the Drips app when it appears.
+At some point the platform will ask you to verify your identity (KYC) before it can pay
+out rewards. Just follow the prompt in the app when it appears.
 
 ---
 
@@ -333,19 +330,19 @@ Once Steps 1–6 are done, your application is complete and strong:
 - ✅ Clear README + setup + contributing rules
 - ✅ 6 well-scoped, labeled issues ready for contributors
 
-Wave organizers will review and notify you by email + in-app when accepted.
+Program organizers will review and notify you by email + in-app when accepted.
 
 ---
 
 ### Order summary (tick as you go)
 - [ ] Step 1 — Both repos set to Public
-- [ ] Step 2 — Project claimed on app.drips.network (wallet connected)
-- [ ] Step 3 — Drips Wave GitHub App installed on the `mergepay` org
-- [ ] Step 4 — 4 labels created in mergepay-api
+- [ ] Step 2 — Project claimed on the funding platform (wallet connected)
+- [ ] Step 3 — Funding platform's GitHub App installed on the `mergepay` org
+- [ ] Step 4 — 3 labels created in mergepay-api
 - [ ] Step 5 — All 6 issues created, each with its labels
-- [ ] Step 6 — Applied to the Stellar Wave program
+- [ ] Step 6 — Applied to the Stellar funding program
 - [ ] Step 7 — KYC completed when prompted
 
-> Need to deploy the app to a live URL too? That's optional for Drips. The step-by-step
+> Need to deploy the app to a live URL too? That's optional. The step-by-step
 > hosting guide (Neon + Render + Vercel) is preserved in git history — ask and I'll
 > bring it back into its own file.
