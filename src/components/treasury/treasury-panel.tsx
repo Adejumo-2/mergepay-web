@@ -32,6 +32,7 @@ import { api, ApiRequestError } from "@/lib/api";
 import { signAndConfirmTreasuryTx, WalletError } from "@/lib/stellar";
 import { SETTLEMENT_ASSETS, STABLE_ASSET } from "@/lib/constants";
 import { fullDate } from "@/lib/format";
+import { validateAmount, normalizeAmount, exceedsBalance } from "@/lib/money";
 import type { Group, GroupDetail } from "@/lib/types";
 
 export function TreasuryPanel({
@@ -254,6 +255,7 @@ export function TreasuryPanel({
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         groupId={group.id}
+        balances={info.data?.balances ?? []}
       />
     </div>
   );
@@ -362,11 +364,18 @@ function DepositDialog({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Validate and normalise: catches exponential notation, >7 dp, zero, negative.
+    const amountError = validateAmount(amount);
+    if (amountError) {
+      toast.error(amountError);
+      return;
+    }
+    const normalised = normalizeAmount(amount);
     const asset = SETTLEMENT_ASSETS.find((a) => a.code === assetKey)!;
     setBusy(true);
     try {
       const intent = await deposit.mutateAsync({
-        amount,
+        amount: normalised,
         assetCode: asset.code,
         assetIssuer: asset.issuer,
       });
@@ -395,12 +404,10 @@ function DepositDialog({
             <Label htmlFor="d-amt">Amount</Label>
             <Input
               id="d-amt"
-              type="number"
-              min="0"
-              step="0.0000001"
+              inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
+              placeholder="0.0000000"
               autoFocus
             />
           </div>
@@ -430,10 +437,13 @@ function WithdrawDialog({
   open,
   onClose,
   groupId,
+  balances,
 }: {
   open: boolean;
   onClose: () => void;
   groupId: string;
+  /** Treasury balances from TreasuryInfoResponse — used for client-side guard. */
+  balances: { assetCode: string; assetIssuer: string | null; balance: string }[];
 }) {
   const withdraw = useTreasuryWithdraw(groupId);
   const [amount, setAmount] = useState("");
@@ -447,11 +457,27 @@ function WithdrawDialog({
       toast.error("Enter a valid destination public key.");
       return;
     }
+    // Validate and normalise: catches exponential notation, >7 dp, zero, negative.
+    const amountError = validateAmount(amount);
+    if (amountError) {
+      toast.error(amountError);
+      return;
+    }
+    const normalised = normalizeAmount(amount);
+    // Client-side balance guard — blocks signing before an opaque Horizon failure.
+    const treasuryBalance = balances.find((b) => b.assetCode === assetKey);
+    if (!treasuryBalance || exceedsBalance(normalised, treasuryBalance.balance)) {
+      const available = treasuryBalance?.balance ?? "0";
+      toast.error(
+        `Insufficient treasury balance. Available: ${available} ${assetKey}.`
+      );
+      return;
+    }
     const asset = SETTLEMENT_ASSETS.find((a) => a.code === assetKey)!;
     setBusy(true);
     try {
       const intent = await withdraw.mutateAsync({
-        amount,
+        amount: normalised,
         assetCode: asset.code,
         assetIssuer: asset.issuer,
         destination: destination.trim(),
@@ -487,12 +513,10 @@ function WithdrawDialog({
             <Label htmlFor="w-amt">Amount</Label>
             <Input
               id="w-amt"
-              type="number"
-              min="0"
-              step="0.0000001"
+              inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
+              placeholder="0.0000000"
               autoFocus
             />
           </div>
