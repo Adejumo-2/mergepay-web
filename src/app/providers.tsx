@@ -20,6 +20,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
               ) {
                 return false;
               }
+              // A schema-validated 200 response is not going to become
+              // valid on the next attempt. Never retry validation errors
+              // — the next polling tick will surface fresh data.
+              if (error instanceof ApiValidationError) {
+                return false;
+              }
               return failureCount < 1;
             },
             refetchOnWindowFocus: false,
