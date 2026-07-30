@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, AlertTriangle } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label, Select, FieldHint, FormError } from "@/components/ui/input";
@@ -33,6 +33,17 @@ export function AddExpenseDialog({
   currentUserId: string;
 }) {
   const create = useCreateExpense(groupId);
+  // Single idempotency key per logical submission — rotated on success
+  // so a second expense (without closing the dialog) gets a fresh key.
+  const idemKey = useRef(crypto.randomUUID());
+  // Guards state updates after the dialog unmounts mid-flight.
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -112,8 +123,8 @@ export function AddExpenseDialog({
     }
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
 
     if (shouldBlockExpenseSubmit({ isPending: create.isPending, submitting })) {
       return;
@@ -195,6 +206,9 @@ export function AddExpenseDialog({
     setReceiptUrl(null);
     setSubmitError(null);
     setParticipants(members.map((m) => m.userId));
+    // Rotate idempotency key on success / explicit reset so a new
+    // logical submission gets a fresh deduplication identity.
+    idemKey.current = crypto.randomUUID();
   }
 
   const equalShare =
