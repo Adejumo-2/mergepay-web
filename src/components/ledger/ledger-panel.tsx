@@ -106,32 +106,23 @@ export function LedgerPanel({ groupId }: { groupId: string }) {
                       </Badge>
                     )}
                   </div>
-                </div>
-              </div>
-            )}
-            {entry.type === "treasury" && (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-bold capitalize">
-                    Treasury {entry.treasuryTransaction.direction}
-                  </p>
-                  <p className="text-xs text-ink/50">
-                    <Timestamp value={entry.createdAt} />
-                  </p>
-                </div>
-                <div className="text-right">
                   <Money
-                    value={entry.treasuryTransaction.amount}
-                    assetCode={entry.treasuryTransaction.assetCode}
+                    value={entry.expense.amount}
+                    assetCode={entry.expense.assetCode}
                   />
-                  <div className="mt-1 flex justify-end">
-                    {entry.treasuryTransaction.stellarTxHash ? (
-                      <TxLink hash={entry.treasuryTransaction.stellarTxHash} />
-                    ) : (
-                      <Badge tone={statusTone(entry.treasuryTransaction.status)}>
-                        {entry.treasuryTransaction.status.replace(/_/g, " ")}
-                      </Badge>
-                    )}
+                </div>
+              )}
+              {entry.type === "settlement" && (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="flex items-center gap-1.5 font-bold">
+                      {entry.settlement.from.displayName}
+                      <ArrowRight className="h-3.5 w-3.5 text-ink/40" />
+                      {entry.settlement.to.displayName}
+                    </p>
+                    <p className="text-xs text-ink/50">
+                      <Timestamp value={entry.createdAt} />
+                    </p>
                   </div>
                 </div>
               </div>
