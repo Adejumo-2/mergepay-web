@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoMark } from "./logo";
+import { isSessionExpired } from "@/lib/api";
+import { SessionExpiryDialog } from "./session-expiry-dialog";
 
 /**
  * Client-side guard: waits for the persisted wallet session to be
@@ -16,6 +18,7 @@ import { LogoMark } from "./logo";
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { token, hydrated, restoring } = useAuth();
   const router = useRouter();
+  const expired = isSessionExpired();
 
   useEffect(() => {
     if (hydrated && !restoring && !token) router.replace("/login");
@@ -38,5 +41,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  // If the session is expired, we still render the children (so forms aren't lost),
+  // but we overlay the expiry dialog to force re-auth.
+  return (
+    <>
+      {children}
+      {expired && <SessionExpiryDialog />}
+    </>
+  );
 }

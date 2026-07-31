@@ -68,13 +68,6 @@ export function useAuth() {
     }
   }, [queryClient]);
 
-  useEffect(() => {
-    if (hydrated && isSessionExpired() && !token) {
-      router.replace("/login");
-      toast.error("Session expired. Please sign in again.");
-    }
-  }, [hydrated, token, router]);
-
   // Watch for wallet account or network changes mid-session
   useEffect(() => {
     if (!isAuthenticated || !user) return;
