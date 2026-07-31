@@ -27,14 +27,96 @@ type Step =
   | "confirmed"
   | "failed";
 
-export interface SettleTarget {
-  /** Either settle a specific expense share, or a freeform net suggestion. */
-  expenseId?: string;
-  to: User;
-  amount: string;
-  assetCode: string;
-  assetIssuer: string | null;
-  label: string;
+// ---------------------------------------------------------------------------
+// Step metadata for status cards
+// ---------------------------------------------------------------------------
+
+interface StepMeta {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}
+
+const STEP_META: Partial<Record<SettlementStep, StepMeta>> = {
+  preparing: {
+    icon: <Loader2 className="h-7 w-7 animate-spin text-grape" />,
+    title: "Preparing payment",
+    description: "Building the transaction on Stellar…",
+  },
+  awaiting_wallet: {
+    icon: <Wallet className="h-7 w-7 text-grape" />,
+    title: "Check your wallet",
+    description:
+      "Approve the transaction in your Freighter wallet to continue.",
+  },
+  submitted: {
+    icon: <Loader2 className="h-7 w-7 animate-spin text-grape" />,
+    title: "Waiting for confirmation",
+    description:
+      "Polling the network for the terminal transaction state. You can close this dialog — the ledger will refresh automatically.",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function StepLine({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 border-ink bg-cream">
+        {icon}
+      </span>
+      <span>{children}</span>
+    </li>
+  );
+}
+
+function WalletErrorBanner({
+  code,
+  message,
+}: {
+  code: WalletErrorCode | null;
+  message: ReactNode;
+}) {
+  const icon =
+    code === "locked" ? (
+      <Lock className="h-4 w-4" />
+    ) : code === "not_installed" ? (
+      <ShieldX className="h-4 w-4" />
+    ) : (
+      <AlertTriangle className="h-4 w-4" />
+    );
+
+  let title = "Error";
+  if (code === "locked") title = "Wallet locked";
+  else if (code === "not_installed") title = "Wallet not found";
+  else if (code === "user_rejected") title = "Cancelled";
+  else if (code === "disconnected") title = "Disconnected";
+  else if (code === "network") title = "Network error";
+
+  return (
+    <div
+      className="flex items-start gap-3 rounded-xl border-2 border-ink bg-butter-pale px-4 py-3 text-sm"
+      role="alert"
+    >
+      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 border-ink bg-cream">
+        {icon}
+      </span>
+      <div>
+        <p className="font-display text-[11px] uppercase tracking-widest text-ink/50">
+          {title}
+        </p>
+        <p className="mt-1">{message}</p>
+      </div>
+    </div>
+  );
 }
 
 export interface BulkSettleTarget {
@@ -57,6 +139,10 @@ export function suggestionToTarget(s: SettlementSuggestion): SettleTarget {
     label: `Settle up with ${s.to.displayName}`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Main dialog
+// ---------------------------------------------------------------------------
 
 export function SettleDialog({
   open,
