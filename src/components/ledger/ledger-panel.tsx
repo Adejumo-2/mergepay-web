@@ -110,6 +110,14 @@ export function LedgerPanel({ groupId }: { groupId: string }) {
                     value={entry.expense.amount}
                     assetCode={entry.expense.assetCode}
                   />
+                  <div className="mt-1 flex justify-end">
+                    {entry.treasuryTransaction.stellarTxHash ? (
+                      <TxLink hash={entry.treasuryTransaction.stellarTxHash} />
+                    ) : (
+                      <Badge tone={statusTone(entry.treasuryTransaction.status)}>
+                        {entry.treasuryTransaction.status.replace(/_/g, " ")}
+                      </Badge>
+                    )}
                 </div>
               )}
               {entry.type === "settlement" && (

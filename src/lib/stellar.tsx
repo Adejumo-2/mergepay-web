@@ -12,6 +12,7 @@ import {
   isConnected,
   requestAccess,
   getAddress,
+  getNetworkDetails,
   getNetwork,
   signTransaction,
 } from "@stellar/freighter-api";
@@ -187,6 +188,44 @@ export async function isFreighterAvailable(): Promise<boolean> {
 }
 
 /**
+ * Read the already-granted public address without prompting.
+ *
+ * Returns `null` when the wallet is missing, locked, or has not shared an
+ * account — all of which are ordinary "not connected yet" states, not errors.
+ * Only the public address is read; no call here can return secret material.
+ */
+export async function getGrantedAddress(): Promise<string | null> {
+  try {
+    const res = await getAddress();
+    if (typeof res === "string") return res || null;
+    if (isObject(res)) {
+      if (extractError(res)) return null;
+      const address = res.address;
+      if (typeof address === "string" && address) return address;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Network the wallet is currently pointed at, or `null` if unreadable. */
+export async function getWalletNetwork(): Promise<{
+  network: string;
+  networkPassphrase: string;
+} | null> {
+  try {
+    const res = await getNetworkDetails();
+    if (!isObject(res) || extractError(res)) return null;
+    const { network, networkPassphrase } = res;
+    if (typeof networkPassphrase !== "string" || !networkPassphrase) return null;
+    return {
+      network: typeof network === "string" ? network : "",
+      networkPassphrase,
+    };
+  } catch {
+    return null;
+  }
  * Read the active public key **without prompting**.
  *
  * `getAddress` resolves to an empty address (or an error field) when the
