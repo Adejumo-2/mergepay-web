@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useGroupStore } from "@/lib/group-store";
 import {
   Landmark,
+  ListChecks,
   Plus,
   Receipt,
   Scale,
@@ -19,6 +20,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { ExpenseCard } from "@/components/expenses/expense-card";
+import { SettleDialog, type BulkSettleTarget } from "@/components/settle/settle-dialog";
+import { BulkSettleBar } from "@/components/settle/bulk-settle-bar";
+import { buildBulkTarget, type UnsettledShare } from "@/lib/bulkSettle";
 import { BalancesPanel } from "@/components/balances/balances-panel";
 import { LedgerPanel } from "@/components/ledger/ledger-panel";
 import { TreasuryPanel } from "@/components/treasury/treasury-panel";
@@ -42,6 +46,8 @@ export default function GroupDetailPage() {
   const { data: detail, isLoading, isError, error, refetch } = useGroup(id);
   const [tab, setTab] = useState<Tab>("expenses");
   const [addOpen, setAddOpen] = useState(false);
+  // Keep the active group id in a tiny client store so sibling routes
+  // (e.g. balances, treasury) can reuse it without re-fetching.
   const setSelectedGroup = useGroupStore((s) => s.setSelectedGroup);
 
   useEffect(() => {
@@ -97,11 +103,31 @@ export default function GroupDetailPage() {
         active={tab}
         onChange={(t) => setTab(t as Tab)}
         tabs={[
-          { id: "expenses", label: "Expenses", icon: <Receipt className="h-4 w-4" /> },
-          { id: "balances", label: "Balances", icon: <Scale className="h-4 w-4" /> },
-          { id: "ledger", label: "Ledger", icon: <ScrollText className="h-4 w-4" /> },
-          { id: "treasury", label: "Treasury", icon: <Landmark className="h-4 w-4" /> },
-          { id: "members", label: "Members", icon: <Users className="h-4 w-4" /> },
+          {
+            id: "expenses",
+            label: "Expenses",
+            icon: <Receipt className="h-4 w-4" />,
+          },
+          {
+            id: "balances",
+            label: "Balances",
+            icon: <Scale className="h-4 w-4" />,
+          },
+          {
+            id: "ledger",
+            label: "Ledger",
+            icon: <ScrollText className="h-4 w-4" />,
+          },
+          {
+            id: "treasury",
+            label: "Treasury",
+            icon: <Landmark className="h-4 w-4" />,
+          },
+          {
+            id: "members",
+            label: "Members",
+            icon: <Users className="h-4 w-4" />,
+          },
         ]}
       />
 
@@ -158,9 +184,43 @@ function ExpensesTab({
 }: {
   groupId: string;
   currentUserId: string;
-  members: import("@/lib/types").GroupMember[];
+  members: GroupMember[];
   onAdd: () => void;
 }) {
+  // Bulk-settle selection state. Kept local to this tab so leaving the
+  // expenses tab (e.g. to balances) automatically drops the selection.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkTarget, setBulkTarget] = useState<BulkSettleTarget | null>(null);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedIds([]);
+  }
+  function openBulkDialog(shares: UnsettledShare[]) {
+    // Mirror the bar's own validation, but build the dialog-bound target
+    // so the receipt can list per-expense rows by their on-page title.
+    const { target, error } = buildBulkTarget(shares);
+    if (error || !target) return;
+    const titleById = new Map(expenses.map((e) => [e.id, e.title]));
+    setBulkTarget({
+      ...target,
+      rows: target.expenseIds.map((id) => ({
+        expenseId: id,
+        title: titleById.get(id) ?? id,
+        amount:
+          shares.find((s) => s.expenseId === id)?.amount ?? "0.0000000",
+      })),
+    });
+    setBulkOpen(true);
+  }
+
   const { data, isLoading, isError, error, refetch } = useExpenses(groupId);
 
   const status = resolveSectionStatus({
@@ -204,17 +264,63 @@ function ExpensesTab({
     );
   }
 
-  return (
-    <div className="space-y-3">
-      {expenses.map((e) => (
-        <ExpenseCard
-          key={e.id}
-          expense={e}
-          groupId={groupId}
-          currentUserId={currentUserId}
-          members={members}
-        />
-      ))}
+  // Action area changes when bulk-select is on, mirroring the issue's
+  // "Settle" button requirement on the group detail page. The "Add
+  // expense" button stays in the page header — this row is only for
+  // bulk-select controls.
+  const actionArea = selectMode ? (
+    <div className="flex items-center justify-end gap-2">
+      <Badge tone="paper">{selectedIds.length} selected</Badge>
+      <Button variant="outline" size="sm" onClick={exitSelectMode}>
+        Cancel
+      </Button>
     </div>
+  ) : (
+    <div className="flex items-center justify-end">
+      <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
+        <ListChecks className="h-4 w-4" /> Settle in bulk
+      </Button>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">{actionArea}</div>
+      <div className="space-y-3">
+        {expenses.map((e) => (
+          <ExpenseCard
+            key={e.id}
+            expense={e}
+            groupId={groupId}
+            currentUserId={currentUserId}
+            members={members}
+            selectable={selectMode}
+            selected={selectedIds.includes(e.id)}
+            onToggleSelect={() => toggleSelect(e.id)}
+          />
+        ))}
+      </div>
+
+      <BulkSettleBar
+        expenses={expenses}
+        currentUserId={currentUserId}
+        selectedIds={selectedIds}
+        onClear={() => setSelectedIds([])}
+        onProceed={openBulkDialog}
+      />
+
+      <SettleDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        groupId={groupId}
+        target={null}
+        bulkTarget={bulkTarget}
+        onSettled={() => {
+          setBulkOpen(false);
+          setBulkTarget(null);
+          exitSelectMode();
+        }}
+      />
+    </>
   );
 }

@@ -19,9 +19,15 @@ import { validateSettlementInput } from "@/lib/paymentValidation";
 import { recoveryActionFor, retryLabelFor } from "@/lib/settlementRetry";
 import type { SettlementSuggestion, User } from "@/lib/types";
 
-type Step = "review" | "submitting" | "submitted" | "confirmed" | "failed";
+type Step =
+  | "review"
+  | "submitting"
+  | "submitted"
+  | "confirmed"
+  | "failed";
 
 export interface SettleTarget {
+  /** Either settle a specific expense share, or a freeform net suggestion. */
   expenseId?: string;
   to: User;
   amount: string;
@@ -30,11 +36,43 @@ export interface SettleTarget {
   label: string;
 }
 
-export function suggestionToTarget(s: SettlementSuggestion): SettleTarget {
-  return { to: s.to, amount: s.amount, assetCode: s.assetCode, assetIssuer: s.assetIssuer, label: `Settle up with ${s.to.displayName}` };
+export interface BulkSettleTarget {
+  expenseIds: string[];
+  /** Per-expense informational rows for the dialog (id, title, payer, amount). */
+  rows: { expenseId: string; title: string; amount: string }[];
+  to: User;
+  amount: string;
+  assetCode: string;
+  assetIssuer: string | null;
+  label: string;
 }
 
-export function SettleDialog({ open, onClose, groupId, target }: { open: boolean; onClose: () => void; groupId: string; target: SettleTarget | null }) {
+export function suggestionToTarget(s: SettlementSuggestion): SettleTarget {
+  return {
+    to: s.to,
+    amount: s.amount,
+    assetCode: s.assetCode,
+    assetIssuer: s.assetIssuer,
+    label: `Settle up with ${s.to.displayName}`,
+  };
+}
+
+export function SettleDialog({
+  open,
+  onClose,
+  groupId,
+  target,
+  bulkTarget,
+  onSettled,
+}: {
+  open: boolean;
+  onClose: () => void;
+  groupId: string;
+  target: SettleTarget | null;
+  bulkTarget?: BulkSettleTarget | null;
+  /** Fired after a successful bulk settlement so the parent can clear the selection. */
+  onSettled?: () => void;
+}) {
   const confirm = useConfirmSettlement(groupId);
   const [settlementId, setSettlementId] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("review");
@@ -50,9 +88,13 @@ export function SettleDialog({ open, onClose, groupId, target }: { open: boolean
   const recovery = recoveryActionFor(errorCode);
   const { refresh: refreshWallet, ...wallet } = useWalletStatus();
 
+  const isBulk = !!bulkTarget;
+  const active = isBulk ? bulkTarget : target;
+
   function close() {
     if (transactionInFlight) return;
     onClose();
+    // reset after the close animation
     setTimeout(() => {
       setStep("review"); setTxHash(null); setError(""); setErrorCode(null); setSettlementId(null); setAttempts(0); setReconnecting(false);
     }, 200);
@@ -73,14 +115,32 @@ export function SettleDialog({ open, onClose, groupId, target }: { open: boolean
     setError(""); setErrorCode(null); setTxHash(null); setSettlementId(null); setAttempts((n) => n + 1);
     try {
       const intent = target.expenseId
-        ? await api.settleExpense(target.expenseId, { assetCode: target.assetCode, assetIssuer: target.assetIssuer })
-        : await api.createSettlement(groupId, { toUserId: target.to.id, amount: target.amount, assetCode: target.assetCode, assetIssuer: target.assetIssuer });
+        ? await api.settleExpense(target.expenseId, {
+            assetCode: target.assetCode,
+            assetIssuer: target.assetIssuer,
+          })
+        : await api.createSettlement(groupId, {
+            toUserId: target.to.id,
+            amount: target.amount,
+            assetCode: target.assetCode,
+            assetIssuer: target.assetIssuer,
+          });
       setStep("submitting");
       const signedXdr = await signXdr(intent.xdr, intent.networkPassphrase);
-      const { settlement } = await confirm.mutateAsync({ settlementId: intent.settlement.id, data: { signedXdr } });
-      setSettlementId(intent.settlement.id); setTxHash(settlement.stellarTxHash ?? null); setStep("submitted");
-      if (settlement.status === "confirmed") { setStep("confirmed"); toast.success("Settled on Stellar"); }
-      else if (settlement.status === "failed") { setStep("failed"); setError("Stellar rejected this transaction. Please try again."); }
+      const { settlement } = await confirm.mutateAsync({
+        settlementId: intent.settlement.id,
+        data: { signedXdr },
+      });
+      setSettlementId(intent.settlement.id);
+      setTxHash(settlement.stellarTxHash ?? null);
+      setStep("submitted");
+      if (settlement.status === "confirmed") {
+        setStep("confirmed");
+        toast.success("Settled on Stellar");
+      } else if (settlement.status === "failed") {
+        setStep("failed");
+        setError("Stellar rejected this transaction. Please try again.");
+      }
     } catch (e) {
       // Every failure lands in "failed" with the reason on screen and the
       // dialog still open, so the user retries instead of starting over.
@@ -115,7 +175,9 @@ export function SettleDialog({ open, onClose, groupId, target }: { open: boolean
     else if (statusQuery.data.status === "failed") { setStep("failed"); setError("Stellar rejected this transaction. Please try again."); }
   }, [step, statusQuery.data]);
 
-  if (!target) return null;
+  // `active` resolves to bulkTarget in bulk mode and target in single mode;
+  // both share the {to, amount, assetCode, label} shape we render here.
+  if (!active) return null;
   return <Dialog
     open={open}
     onClose={close}
