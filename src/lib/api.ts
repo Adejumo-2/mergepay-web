@@ -86,6 +86,13 @@ import type {
 } from "./types";
 import type { ExpensesPage } from "./expenses";
 
+export class ApiValidationError extends Error {
+  constructor(message?: string) {
+    super(message ?? "Response failed schema validation");
+    this.name = "ApiValidationError";
+  }
+}
+
 export class ApiRequestError extends Error {
   code: string;
   status: number;
