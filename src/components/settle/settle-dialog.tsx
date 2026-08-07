@@ -186,6 +186,9 @@ export function SettleDialog({
   const isBulk = !!bulkTarget;
   const active = isBulk ? bulkTarget : target;
 
+  /** Prevent accidental dismissal while a transaction is in-flight. */
+  const dismissible = step !== "submitting" && step !== "submitted";
+
   function close() {
     if (transactionInFlight) return;
     onClose();
@@ -278,7 +281,7 @@ export function SettleDialog({
     onClose={close}
     title={active.label}
     description={`Send ${formatMoney(active.amount, active.assetCode)} to ${active.to.displayName}. You sign the payment in your wallet; Mergepay never holds your keys.`}
-    dismissible={!transactionInFlight}
+    dismissible={dismissible}
   >
     <div className="space-y-5">
       <div className="rounded-2xl border-3 border-ink bg-paper p-5"><div className="flex items-center justify-between"><span className="font-display text-xs uppercase tracking-widest text-ink/50">Paying</span><AssetBadge code={active.assetCode} /></div><div className="mt-3 flex items-center gap-3"><Avatar user={active.to} size="lg" /><div><p className="font-display text-lg uppercase tracking-tight">{active.to.displayName}</p><Money value={active.amount} assetCode={active.assetCode} className="text-2xl" /></div></div></div>
