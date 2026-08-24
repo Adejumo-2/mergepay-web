@@ -133,8 +133,10 @@ export function exportHistoryCsv(expenses: Expense[], settlements: Settlement[])
  * Kept separate from `printReceipt` so it can be unit-tested without a DOM.
  */
 export function buildReceiptHtml(settlement: Settlement): string {
-  // `null` when the settlement has no hash yet, or the hash is malformed —
-  // the receipt then prints the raw reference without a dead explorer link.
+  // `null` when the settlement has no hash yet, or the hash is malformed. A
+  // malformed or absent hash is omitted from the receipt entirely (the row is
+  // guarded by `isValidTxHash` below), so untrusted values never reach the
+  // markup; a valid hash always resolves to an explorer link.
   const explorer = explorerTxUrl(settlement.stellarTxHash);
   const createdAt = new Date(settlement.createdAt);
   const createdAtLabel = Number.isNaN(createdAt.getTime())
@@ -162,7 +164,7 @@ export function buildReceiptHtml(settlement: Settlement): string {
     <div class="row"><span>Memo</span><b>${escapeHtml(settlement.memo ?? "—")}</b></div>
     <div class="row"><span>Date</span><b>${escapeHtml(createdAtLabel)}</b></div>
     ${
-      settlement.stellarTxHash
+      isValidTxHash(settlement.stellarTxHash)
         ? `<div class="row"><span>Tx hash</span></div>${
             explorer
               ? `<a href="${escapeHtml(

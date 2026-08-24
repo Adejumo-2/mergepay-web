@@ -291,6 +291,7 @@ describe("API response schemas", () => {
           },
         },
       ],
+      nextCursor: null,
     });
     assert.equal(ok.success, true);
   });

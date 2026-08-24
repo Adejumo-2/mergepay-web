@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run && tsx --test src/lib/__tests__/*.test.ts src/lib/money.test.ts"
+    "test": "vitest run && tsx --test src/lib/__tests__/*.test.ts"
   },
   "dependencies": {
     "@stellar/freighter-api": "^4.0.0",

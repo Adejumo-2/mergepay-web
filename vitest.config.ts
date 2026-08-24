@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
-import path from "node:path";
 
 export default defineConfig({
   resolve: {
@@ -10,6 +9,11 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  // tsconfig.json uses `jsx: "preserve"` (Next.js transforms JSX at build
+  // time). Vitest has no Next pipeline, so it must transform JSX itself:
+  // override the preserved setting via oxc's automatic runtime, which means
+  // component tests need no explicit React import.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     environment: "jsdom",
     globals: true,

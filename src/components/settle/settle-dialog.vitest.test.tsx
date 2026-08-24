@@ -28,6 +28,29 @@ vi.mock("@/lib/api", async () => {
   };
 });
 
+// The wallet-gating added in #176 disables "Settle now" until the wallet is
+// connected, on the right network, and ready to sign. These tests exercise the
+// settlement state machine, not wallet readiness, so present a connected wallet.
+vi.mock("@/hooks/useWalletStatus", () => ({
+  useWalletStatus: () => ({
+    kind: "connected",
+    label: "Connected",
+    message: "Connected to Testnet. Mergepay never sees your keys.",
+    actionLabel: null,
+    actionKind: null,
+    tone: "lime",
+    canSign: true,
+    address: "GUSER1",
+    networkName: "TESTNET",
+    refresh: vi.fn(),
+  }),
+}));
+
+vi.mock("@/lib/wallet-store", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/wallet-store")>("@/lib/wallet-store");
+  return { ...actual, useWalletDisconnected: () => false };
+});
+
 const target: SettleTarget = {
   to: {
     id: "user-2",
@@ -62,13 +85,23 @@ describe("SettleDialog state transitions", () => {
 
   it("moves from review through signing/submitting to done", async () => {
     vi.mocked(api.createSettlement).mockResolvedValue(intent as never);
-    mutateAsync.mockResolvedValue({ settlement });
+    // Hold confirmation open so the dialog is observably parked on "submitting"
+    // before we complete it — otherwise the pre-resolved mocks race straight to
+    // the done step and the intermediate state is never rendered.
+    let confirmSettlement!: () => void;
+    mutateAsync.mockReturnValue(
+      new Promise((resolve) => {
+        confirmSettlement = () => resolve({ settlement });
+      }),
+    );
 
     render(<SettleDialog open onClose={vi.fn()} groupId="group-1" target={target} />);
     expect(screen.getByRole("button", { name: /settle now/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /settle now/i }));
     expect(await screen.findByText(/submitting to stellar/i)).toBeInTheDocument();
+
+    confirmSettlement();
     expect(await screen.findByText("Settled!")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
   });
