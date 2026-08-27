@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Money } from "@/components/amount";
 import type { Expense } from "@/lib/types";
+import { summarizeCategories } from "@/lib/analytics";
 
 function units(value: string): bigint {
   const [whole, fraction = ""] = value.split(".");
@@ -20,6 +21,7 @@ export function GroupAnalytics({ expenses }: { expenses: Expense[] }) {
   const average = expenses.length ? total / BigInt(expenses.length) : 0n;
   const assetCode = expenses[0]?.assetCode ?? "XLM";
   const largest = expenses.slice().sort((a, b) => Number(b.amount) - Number(a.amount)).slice(0, 5);
+  const categories = summarizeCategories(expenses);
   return <Card className="mb-4">
     <div className="border-b-3 border-ink bg-aqua px-4 py-3"><h2 className="font-display text-sm uppercase tracking-widest">Analytics &amp; export</h2></div>
     <CardContent className="space-y-4 pt-4">
@@ -32,6 +34,12 @@ export function GroupAnalytics({ expenses }: { expenses: Expense[] }) {
         const ratio = total ? Number((units(e.amount) * 10000n) / total) / 100 : 0;
         return <div key={e.id}><div className="flex justify-between text-xs"><span className="truncate">{e.title}</span><span className="font-mono">{ratio.toFixed(0)}%</span></div><div className="mt-1 h-3 border-2 border-ink bg-paper"><div className="h-full bg-grape" style={{ width: `${Math.min(100, ratio)}%` }} /></div></div>;
       })}</div>}
+      {categories.length > 0 && <div className="space-y-2" aria-label="Spending by category">
+        {categories.map((category) => <div key={category.category}>
+          <div className="flex justify-between text-xs"><span>{category.category}</span><span className="font-mono">{category.percentage.toFixed(0)}%</span></div>
+          <div className="mt-1 h-3 border-2 border-ink bg-paper"><div className="h-full bg-aqua" style={{ width: `${category.percentage}%` }} /></div>
+        </div>)}
+      </div>}
     </CardContent>
   </Card>;
 }
