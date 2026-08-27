@@ -21,6 +21,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { ExpenseCard } from "@/components/expenses/expense-card";
+import { ExportHistoryButton } from "@/components/expenses/ExportHistoryButton";
 import { SettleDialog, type BulkSettleTarget } from "@/components/settle/settle-dialog";
 import { BulkSettleBar } from "@/components/settle/bulk-settle-bar";
 import { buildBulkTarget, type UnsettledShare } from "@/lib/bulkSettle";
@@ -323,7 +324,8 @@ function ExpensesTab({
       </Button>
     </div>
   ) : (
-    <div className="flex items-center justify-end">
+    <div className="flex items-center justify-end gap-2">
+      <ExportHistoryButton groupId={groupId} currentUserId={currentUserId} />
       <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
         <ListChecks className="h-4 w-4" /> Settle in bulk
       </Button>
