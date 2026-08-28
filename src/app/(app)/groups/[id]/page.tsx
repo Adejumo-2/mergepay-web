@@ -25,6 +25,7 @@ import { ListSkeleton } from "@/components/ui/skeleton";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { ExpenseCard } from "@/components/expenses/expense-card";
 import { ExportHistoryButton } from "@/components/expenses/ExportHistoryButton";
+import { ExportGroupStatementButton } from "@/components/ExportGroupStatementButton";
 import { RecurringExpenseScheduler } from "@/components/RecurringExpenseScheduler";
 import { ShareQrModal } from "@/components/ShareQrModal";
 
@@ -42,7 +43,7 @@ import {
   SectionError,
   SectionLoading,
 } from "@/components/ui/section";
-import { useGroup, useInfiniteExpenses, useMe } from "@/lib/queries";
+import { useGroup, useInfiniteExpenses, useLedger, useMe } from "@/lib/queries";
 import type { GroupMember } from "@/lib/types";
 import { mergeExpensePages, sortExpensesByDateDesc } from "@/lib/expenses";
 import { apiErrorMessage } from "@/lib/errorHandler";
@@ -318,6 +319,17 @@ function ExpensesTab({
     setBulkOpen(true);
   }
 
+  // Fetch the full ledger for the comprehensive statement export.
+  // Must be called before any early returns to satisfy rules-of-hooks.
+  const { data: ledgerPages } = useLedger(groupId);
+  const ledgerEntries = ledgerPages?.entries ?? [];
+  const ledgerExpenses = ledgerEntries
+    .filter((e) => e.type === "expense")
+    .map((e) => e.expense);
+  const ledgerSettlements = ledgerEntries
+    .filter((e) => e.type === "settlement")
+    .map((e) => e.settlement);
+
   const status = resolveSectionStatus({
     isLoading,
     isError: isError && expenses.length === 0,
@@ -383,6 +395,11 @@ function ExpensesTab({
   ) : (
     <div className="flex items-center justify-end gap-2">
       <ExportHistoryButton groupId={groupId} currentUserId={currentUserId} />
+      <ExportGroupStatementButton
+        groupId={groupId}
+        expenses={expenses.length > 0 ? expenses : ledgerExpenses}
+        settlements={ledgerSettlements}
+      />
       <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
         <ListChecks className="h-4 w-4" /> Settle in bulk
       </Button>
