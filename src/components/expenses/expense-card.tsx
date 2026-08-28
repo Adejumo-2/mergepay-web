@@ -9,6 +9,7 @@ import { Badge, statusTone } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Money } from "@/components/amount";
 import { AssetBadge } from "@/components/asset-badge";
+import { FiatEquivalent, FiatInline } from "@/components/FiatEquivalent";
 import { Button } from "@/components/ui/button";
 import {
   SettleDialog,
@@ -129,8 +130,9 @@ export function ExpenseCard({
           </div>
           <div className="text-right">
             <Money value={expense.amount} assetCode={expense.assetCode} />
-            <div className="mt-1 flex justify-end gap-1">
+            <div className="mt-1 flex items-center justify-end gap-1.5">
               <AssetBadge code={expense.assetCode} />
+              <FiatEquivalent amount={expense.amount} assetCode={expense.assetCode} />
             </div>
           </div>
         </button>
@@ -168,6 +170,7 @@ export function ExpenseCard({
                   </span>
                   <span className="flex items-center gap-2">
                     <Money value={share.shareAmount} assetCode={expense.assetCode} />
+                    <FiatInline amount={share.shareAmount} assetCode={expense.assetCode} />
                     <Badge tone={statusTone(share.status)}>{share.status}</Badge>
                   </span>
                 </div>
