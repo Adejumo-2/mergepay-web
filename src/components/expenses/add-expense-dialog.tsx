@@ -121,6 +121,9 @@ export function AddExpenseDialog({
   // Expenses are settled on-chain — block submission while the wallet is
   // disconnected.
   const walletDisconnected = useWalletDisconnected();
+  // Prevent on-chain submissions when the browser is offline.
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+  const submitBlocked = isOffline || walletDisconnected;
 
   /** Request in flight, by either the mutation or this form's own latch. */
   const pending = create.isPending || submitting;
@@ -640,13 +643,15 @@ export function AddExpenseDialog({
           <Button
             type="submit"
             loading={pending}
-            disabled={validationErrors !== null || pending || walletDisconnected}
+            disabled={validationErrors !== null || pending || submitBlocked}
             title={
-              walletDisconnected
-                ? "Reconnect your wallet to add an expense"
-                : validationErrors
-                  ? Object.values(validationErrors)[0]
-                  : undefined
+              isOffline
+                ? "You're offline — expense will be saved locally"
+                : walletDisconnected
+                  ? "Reconnect your wallet to add an expense"
+                  : validationErrors
+                    ? Object.values(validationErrors)[0]
+                    : undefined
             }
             aria-busy={pending}
             aria-describedby={submitError ? "e-submit-error" : undefined}

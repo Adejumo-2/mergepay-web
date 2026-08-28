@@ -188,6 +188,8 @@ export function SettleDialog({
   const { refresh: refreshWallet, ...wallet } = useWalletStatus();
   // Signing requires the wallet — block new attempts while disconnected.
   const walletDisconnected = useWalletDisconnected();
+  // Prevent on-chain submissions when the browser is offline.
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
   const isBulk = !!bulkTarget;
   const active = isBulk ? bulkTarget : target;
@@ -347,9 +349,13 @@ export function SettleDialog({
           {recovery === "retry" && (
             <Button
               onClick={() => run()}
-              disabled={walletDisconnected}
+              disabled={walletDisconnected || isOffline}
               title={
-                walletDisconnected ? "Reconnect your wallet to settle" : undefined
+                isOffline
+                  ? "You're offline — settlement requires an active connection"
+                  : walletDisconnected
+                    ? "Reconnect your wallet to settle"
+                    : undefined
               }
             >
               <RefreshCcw className="h-4 w-4" /> {retryLabelFor(errorCode)}
