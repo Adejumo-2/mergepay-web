@@ -26,6 +26,10 @@ import { WalletStatusPanel } from "./wallet/wallet-status";
 import { shortKey } from "@/lib/format";
 import { FOCUSABLE_SELECTOR, nextFocusIndex } from "@/lib/dialog";
 
+import { HorizonHealthIndicator } from "./HorizonHealthIndicator";
+import { OfflineSyncBanner } from "./OfflineSyncBanner";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/groups", label: "Groups", icon: Users },
@@ -33,6 +37,7 @@ const NAV = [
   { href: "/history", label: "History", icon: History },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
+
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -100,6 +105,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Group content must never survive a switch to a different wallet.
   useWalletScopedCache();
 
+  // Host the network listeners + auto-flush for the offline draft queue.
+  useOfflineSync();
+
   async function handleLogout() {
     await logout();
     toast.success("Signed out");
@@ -136,7 +144,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           );
         })}
       </nav>
-      <div className="px-3 pb-3">
+      <div className="space-y-2 px-3 pb-3">
+        <HorizonHealthIndicator className="w-full justify-between" />
         <WalletStatusPanel status={walletStatus} onRefresh={refreshWallet} />
       </div>
       {user && (
@@ -182,8 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Logo markSize={30} />
         </Link>
         <div className="flex items-center gap-2">
-          {/* Mirrors the sidebar panel so the wallet state is visible on mobile
-              without opening the drawer. */}
+          <HorizonHealthIndicator />
           <Badge tone={walletStatus.tone}>{walletStatus.label}</Badge>
           <button
             onClick={() => setMobileOpen(true)}
@@ -194,6 +202,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
+
 
       {/* mobile drawer */}
       {mobileOpen && (
@@ -227,6 +236,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Persistent reconnect prompt while the Freighter wallet is
             disconnected; also hosts the connection poll. */}
         <WalletDisconnectedBanner />
+        <OfflineSyncBanner />
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-10">
           {children}
         </div>
