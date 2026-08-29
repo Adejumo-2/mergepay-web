@@ -7,7 +7,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { api } from "./api";
+import { api, getInviteByCode } from "./api";
 import { handleApiError } from "./errorHandler";
 import { useAuth } from "./auth-store";
 import type {
@@ -136,7 +136,7 @@ export function useGroup(id: string) {
 export function useInviteByCode(code: string | null) {
   return useQuery({
     queryKey: qk.invite(code ?? ""),
-    queryFn: () => api.getInviteByCode(code!),
+    queryFn: () => getInviteByCode(code!),
     enabled: Boolean(code),
     retry: false,
     staleTime: 60_000,
