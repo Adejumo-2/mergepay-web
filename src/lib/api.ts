@@ -268,6 +268,10 @@ export const api = {
       method: "POST",
       schema: GroupResponseSchema as unknown as z.ZodType<GroupResponse>,
     }),
+  getInviteByCode: (code: string) =>
+    request<InviteResponse>(`/invites/${encodeURIComponent(code)}`, {
+      schema: InviteResponseSchema as unknown as z.ZodType<InviteResponse>,
+    }),
 
   // -- expenses ---------------------------------------------------------------
   /**

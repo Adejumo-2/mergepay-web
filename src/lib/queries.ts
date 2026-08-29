@@ -41,6 +41,7 @@ export const qk = {
   treasury: (groupId: string) => ["groups", groupId, "treasury"] as const,
   treasuryHistory: (groupId: string) =>
     ["groups", groupId, "treasury", "history"] as const,
+  invite: (code: string) => ["invite", code] as const,
   anchors: ["anchors"] as const,
   anchorSessions: ["anchors", "sessions"] as const,
   history: ["history"] as const,
@@ -129,6 +130,16 @@ export function useGroup(id: string) {
     queryKey: qk.group(id),
     queryFn: () => api.getGroup(id),
     enabled: useSessionEnabled() && Boolean(id),
+  });
+}
+
+export function useInviteByCode(code: string | null) {
+  return useQuery({
+    queryKey: qk.invite(code ?? ""),
+    queryFn: () => api.getInviteByCode(code!),
+    enabled: Boolean(code),
+    retry: false,
+    staleTime: 60_000,
   });
 }
 
